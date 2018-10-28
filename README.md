@@ -9,7 +9,7 @@ Valence Arousal is a 2D continuous scale where Valence represents how positive o
 - Download the dataset from a Kaggle dataset
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
-- Add metrics for the real or fake images
+✅ Add metrics for the real or fake images
 
 # Acknowledgments
 
