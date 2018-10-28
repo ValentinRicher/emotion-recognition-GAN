@@ -1,0 +1,8 @@
+input_ops.pyc
+many_eval_all.py
+read_error_file_all.py
+model.pyc
+util.pyc
+ops.pyc
+launch/*
+datasets/facemotion/*
