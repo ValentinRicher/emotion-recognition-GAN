@@ -37,18 +37,20 @@ class EvalManager(object):
     def __init__(self, config):
         # collection of batches (not flattened)
         self._ids = []
-        self._predictions = []
+        self._predictions_real = []
+        self._predictions_false = []
         self._groundtruths = []
 
         self.config = config
         self.num_class = self.config.data_info[2]
 
 
-    def add_batch(self, id, prediction, groundtruth):
+    def add_batch(self, id, prediction_real, prediction_false, groundtruth):
 
         # for now, store them all (as a list of minibatch chunks)
         self._ids.append(id)
-        self._predictions.append(prediction)
+        self._predictions_real.append(prediction_real)
+        self._predictions_false.append(prediction_false)
         self._groundtruths.append(groundtruth)
 
     def report(self,fld1):
@@ -65,12 +67,13 @@ class EvalManager(object):
         # report L2 loss
         log.info("Computing scores...")
 
-        predictions = np.reshape(self._predictions, (-1, n+1))
+        predictions_real = np.reshape(self._predictions_real, (-1, n+1))
+        predictions_false = np.reshape(self._predictions_false, (-1, n+1))
         labels = np.reshape(self._groundtruths, (-1, n))
         images = np.reshape(self._ids, (-1))
 
         with open(write_prds, "w") as aa:
-            for line in predictions:  
+            for line in predictions_real:  
                 for li in line[:-1]: 
                     aa.write(str(li)+' ')
                 aa.write('                            '+str(line[-1])+'\n')
@@ -87,7 +90,7 @@ class EvalManager(object):
 
 
         ppredictions = []
-        for elem in predictions[:,n_VA:]:
+        for elem in predictions_real[:,n_VA:]:
             tmp = []  
             for el in elem:  
                 if el >= 0.5:
@@ -98,17 +101,47 @@ class EvalManager(object):
         
         ppredictions =  np.reshape(ppredictions,[-1,n_AU+1])
 
-        real_fake = ppredictions[:,-1]
-        reals = float(len([elem for elem in real_fake if elem == 0]))/len(real_fake)
+        # predictions for false images
+        fpredictions = []
+        for elem in predictions_false[:,n_VA:]:
+            tmp = []  
+            for el in elem:  
+                if el >= 0.5:
+                    tmp.append(1)
+                else:    
+                    tmp.append(0)
+            fpredictions.append(tmp)
+        
+        fpredictions =  np.reshape(fpredictions,[-1,n_AU+1])
+
+        # real or fake predictions for real images
+        real_fake_real = ppredictions[:,-1]
+        # real or fakes predictions for fake images
+        real_fake_fake = fpredictions[:,-1]
+        tp = float(len([elem for elem in real_fake_real if elem == 0]))/len(real_fake_real)
+        fn = float(len([elem for elem in real_fake_real if elem == 1]))/len(real_fake_real)
+        tn = float(len([elem for elem in real_fake_fake if elem == 1]))/len(real_fake_fake)
+        fp = float(len([elem for elem in real_fake_fake if elem == 0]))/len(real_fake_fake)
+        rf_precision = tp / (tp+fp)
+        rf_recall = tp / (tp+fn)
+        rf_acc = (tp + tn) + (tp + tn + fp + fn)
+        rf_f1 = 2*(rf_precision * rf_recall) / (rf_precision + rf_recall)
 
         with open(write_result, "w") as tr:
-            tr.write('of the real images, the percentages classfied as real is '+str(reals)+'\n')
+            tr.write('of the real images, the percentages classified as real is '+str(tp)+'\n')
+            tr.write('of the false images, the percentages classified as false is '+str(tn)+'\n')
+            tr.write('of the real images, the percentages classified as false is '+str(fn)+'\n')
+            tr.write('of the false images, the percentages classified as real is '+str(fp)+'\n')
+            tr.write('rf precision : {} \n'.format(str(rf_precision)))
+            tr.write('rf recall : {} \n'.format(str(rf_recall)))
+            tr.write('rf_acc : {} \n'.format(str(rf_acc)))
+            tr.write('rf_f1 : {} \n'.format(str(rf_f1)))
 
 
         if self.config.model in ('VA', 'BOTH'):
 
-            pred_v = predictions[:,0]
-            pred_a = predictions[:,1]
+            pred_v = predictions_real[:,0]
+            pred_a = predictions_real[:,1]
 
             ccc_v = concordance_cc2(pred_v, labels[:,0])
             ccc_a = concordance_cc2(pred_a, labels[:,1])
@@ -116,7 +149,7 @@ class EvalManager(object):
             mse_v = ((pred_v - labels[:,0])**2).mean()
             mse_a = ((pred_a - labels[:,1])**2).mean()
 
-            with open(write_result, "w") as tr:
+            with open(write_result, "a") as tr:
                 tr.write('ccc_v ccc_a'+'\n')
                 tr.write(str(ccc_v) + ' ' + str(ccc_a)+ '\n')
                 tr.write('mse_v mse_a'+'\n')
@@ -174,7 +207,7 @@ class EvalManager(object):
                     f1_per_class[i] = \
                     2 * precision_per_class[i] * recall_per_class[i] / (precision_per_class[i] + recall_per_class[i])
 
-            with open(write_result, "w") as tr:
+            with open(write_result, "a") as tr:
                 tr.write('recall precision accuracy f1'+'\n')
                 for el,el1,el2,el3 in zip(recall_per_class,precision_per_class,accuracy_per_class,f1_per_class):
                     tr.write(str(el)+' '+str(el1)+' '+str(el2)+' '+str(el3)+'\n')
@@ -253,10 +286,10 @@ class Evaler(object):
         evaler = EvalManager(config)
         try:
             for s in xrange(max_steps):
-                step, step_time, batch_chunk, prediction_pred, prediction_gt = \
+                step, step_time, batch_chunk, prediction_pred_real, prediction_pred_fake, prediction_gt = \
                     self.run_single_step(self.batch)
                 #self.log_step_message(s, loss, step_time)
-                evaler.add_batch(batch_chunk['id'], prediction_pred, prediction_gt)
+                evaler.add_batch(batch_chunk['id'], prediction_pred_real, prediction_pred_fake, prediction_gt)
 
         except Exception as e:
             coord.request_stop(e)
@@ -278,14 +311,14 @@ class Evaler(object):
 
         batch_chunk = self.session.run(batch)
 
-        [step, all_preds, all_targets, _] = self.session.run(
-            [self.global_step, self.model.all_preds, self.model.all_targets, self.step_op],
+        [step, all_preds_real, all_preds_fake, all_targets, _] = self.session.run(
+            [self.global_step, self.model.all_preds_real, self.model.all_preds_fake, self.model.all_targets, self.step_op],
             feed_dict=self.model.get_feed_dict(batch_chunk)
         )
 
         _end_time = time.time()
 
-        return step, (_end_time - _start_time), batch_chunk, all_preds, all_targets
+        return step, (_end_time - _start_time), batch_chunk, all_preds_real, all_preds_fake, all_targets
 
     def log_step_message(self, step, accuracy, step_time, is_train=False):
         if step_time == 0: step_time = 0.001

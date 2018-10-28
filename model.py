@@ -194,7 +194,8 @@ class Model(object):
         # =========
         d_real, d_real_logits = D(self.image, scope='Discriminator', reuse=False)
         d_fake, d_fake_logits = D(fake_image, scope='Discriminator', reuse=True)
-        self.all_preds = d_real
+        self.all_preds_real = d_real
+        self.all_preds_fake = d_fake
         self.all_targets = self.label
         # }}}
 

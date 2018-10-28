@@ -180,7 +180,7 @@ class Trainer(object):
         batch_chunk = self.session.run(batch)
 
         fetch = [self.global_step, self.summary_op, self.model.GAN_loss, self.model.d_loss, self.model.g_loss,
-                 self.model.S_loss, self.model.all_preds, self.model.all_targets, self.model.fake_img]
+                 self.model.S_loss, self.model.all_preds_real, self.model.all_targets, self.model.fake_img]
 
         fetch.append(self.check_op)
 
@@ -204,7 +204,7 @@ class Trainer(object):
 
         batch_chunk = self.session.run(batch)
 
-        fetch_gen = [self.summary_op, self.global_step, self.model.all_preds, self.model.all_targets]
+        fetch_gen = [self.summary_op, self.global_step, self.model.all_preds_real, self.model.all_targets]
         fetch_metrics_rf = [self.model.rf_precision, self.model.rf_recall, self.model.rf_f1, self.model.rf_acc]
         #fetch_metrics_au = [self.model.au_precision, self.model.au_recall, self.model.au_f1, self.model.au_acc]
         fetch = fetch_gen + fetch_metrics_rf

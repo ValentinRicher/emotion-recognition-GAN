@@ -6,3 +6,8 @@ util.pyc
 ops.pyc
 launch/*
 datasets/facemotion/*
+logs/*
+.DS_Store
+logs/.DS_Store
+datasets/.DS_Store
+datasets/facemotion.pyc
