@@ -181,5 +181,4 @@ if __name__ == '__main__':
 
     PATH_TO_DATA = facemotion.get_data_dir()
     img_size = args.img_size
-    #img_size = facemotion.get_data_info()[0]
     download_facemotion(PATH_TO_DATA, img_size)

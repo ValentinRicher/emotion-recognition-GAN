@@ -20,11 +20,6 @@ import h5py
 import sys
 sys.path.append('./datasets/')
 
-#####  in the report function i compute the scores : here modify the 12 and 11 (in my case I had 11 AUs plus one the real/fake)
-#####  i compute here for AUs (apart from percentage of images being real) :  recall precision accuracy f1 per AU,  mean accuracy, mean f1, mean (mean_accuarcy,mean_f1)
-##### modify those to suit your need, i also added the CCC computation for numpy lists/arrays
-
-
 
 def concordance_cc2(r1, r2):
      mean_cent_prod = ((r1 - r1.mean()) * (r2 - r2.mean())).mean()

@@ -128,6 +128,5 @@ def all_ids(img_size, model):
             _ids = [s.strip() for s in fp.readlines() if s]
     except:
         raise IOError('Dataset not found. Please make sure the dataset was downloaded.')
-    # do not shuffle, otherwise training and testing set images will be mixed
-    # rs.shuffle(_ids)
+
     return _ids
