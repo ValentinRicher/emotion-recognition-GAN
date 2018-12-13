@@ -9,6 +9,7 @@ Valence Arousal is a 2D continuous scale where Valence represents how positive o
 - Add metrics for the real or fake images ✅
 - Upload the dataset to a repository on GitHub and use Google Cloud Platform
 - Upload the dataset to Google Drive and use Google Colab
+- Connect the GAN repo with the dataset repo to create automatic downloading
 - Re-organize the facemotion.py to the same level as other .py files
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
