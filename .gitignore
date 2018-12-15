@@ -1,7 +1,3 @@
 datasets/*
-launch/*
-logs/*
-.DS_Store
 logs/*
 ssgan/*pyc
-ssgan/read_error_file_all.py
