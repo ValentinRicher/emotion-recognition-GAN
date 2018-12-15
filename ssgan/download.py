@@ -35,7 +35,7 @@ def create_h5py(train_image, train_label, test_image, test_label, data_dir, shap
     image = np.concatenate((train_image, test_image), axis=0).astype(np.uint8)
     label = np.concatenate((train_label, test_label), axis=0).astype(np.float32)
 
-    print('Preparing H5PY files...')
+    print('Creating H5PY files...')
 
     bar = progressbar.ProgressBar(maxval=100,
                                   widgets=[progressbar.Bar('-', '[', ']'), ' ',
