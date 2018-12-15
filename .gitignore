@@ -1,13 +1,7 @@
-input_ops.pyc
-many_eval_all.py
-read_error_file_all.py
-model.pyc
-util.pyc
-ops.pyc
+datasets/*
 launch/*
-datasets/facemotion/*
 logs/*
 .DS_Store
-logs/.DS_Store
-datasets/.DS_Store
-datasets/facemotion.pyc
+logs/*
+ssgan/*pyc
+ssgan/read_error_file_all.py
