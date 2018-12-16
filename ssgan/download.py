@@ -78,7 +78,7 @@ def check_h5py_file(h5py_dir):
 
 def process_dataset(download_path, img_size):
 
-    data_dir = '/content/emotion-recognition-GAN/datasets/facemotion/final_images/01'
+    data_dir = '/content/emotion-recognition-GAN/datasets/facemotion/'
     # data_dir = os.path.join(download_path)
 
     h5py_dir = config['PATH']['h5py_dir']
