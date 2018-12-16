@@ -204,6 +204,7 @@ class MyThread(Thread):
     def run(self):
         while not os.path.isdir(facemotion_dir + 'final_images/'):
             self.stopped.wait(0.1)
+        print('bar')
         bar = progressbar.ProgressBar(maxval=100,
                                   widgets=[progressbar.Bar('=', '[', ']'), ' ',
                                            progressbar.Percentage()])
@@ -245,6 +246,7 @@ def clone_repo():
     url_repo = config['PATH']['url_repo']
     if not os.path.exists(datasets_dir): os.mkdir(datasets_dir)
     try:
+        print(downloaded_dataset)
         if not downloaded_dataset():
             if os.path.isdir(facemotion_dir):
                 shutil.rmtree(facemotion_dir)
