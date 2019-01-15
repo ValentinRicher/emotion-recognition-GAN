@@ -194,29 +194,29 @@ def process_dataset(download_path, img_size):
     create_h5py(train_image, train_label, test_image, test_label, h5py_dir, [img_size, img_size, 3])
 
 
-class MyThread(Thread):
-    '''
-    Created to see the progression of the dataset downloading
-    '''
-    def __init__(self, event):
-        Thread.__init__(self)
-        self.stopped = event
+# class MyThread(Thread):
+#     '''
+#     Created to see the progression of the dataset downloading
+#     '''
+#     def __init__(self, event):
+#         Thread.__init__(self)
+#         self.stopped = event
 
-    def run(self):
-        while not os.path.isdir(facemotion_dir + 'final_images/'):
-            self.stopped.wait(0.1)
-        print('bar')
-        bar = progressbar.ProgressBar(maxval=100,
-                                  widgets=[progressbar.Bar('=', '[', ']'), ' ',
-                                           progressbar.Percentage()])
-        bar.start()
-        folder_num = 1
-        while not self.stopped.wait(0.5) and folder_num<64:
-            empty = not os.listdir(facemotion_dir + 'final_images/'+str(folder_num).zfill(2))
-            if not empty:
-                bar.update((folder_num/64)*100)
-                folder_num += 1
-        bar.finish()
+#     def run(self):
+#         while not os.path.isdir(facemotion_dir + 'final_images/'):
+#             self.stopped.wait(0.1)
+#         print('bar')
+#         bar = progressbar.ProgressBar(maxval=100,
+#                                   widgets=[progressbar.Bar('=', '[', ']'), ' ',
+#                                            progressbar.Percentage()])
+#         bar.start()
+#         folder_num = 1
+#         while not self.stopped.wait(0.5) and folder_num<64:
+#             empty = not os.listdir(facemotion_dir + 'final_images/'+str(folder_num).zfill(2))
+#             if not empty:
+#                 bar.update((folder_num/64)*100)
+#                 folder_num += 1
+#         bar.finish()
 
 def downloaded_dataset():
     '''
@@ -246,21 +246,20 @@ def clone_repo():
     '''
     url_repo = config['PATH']['url_repo']
     if not os.path.exists(datasets_dir): os.mkdir(datasets_dir)
-    try:
-        print(downloaded_dataset)
-        if not downloaded_dataset():
-            if os.path.isdir(facemotion_dir):
-                shutil.rmtree(facemotion_dir)
-            print('The dataset is going to be downloaded from the repository...')
-            stopFlag = Event()
-            thread = MyThread(stopFlag)
-            thread.start()
-            git.Git(datasets_dir).clone(url_repo)
-            stopFlag.set()
-        else:
-            print('The dataset has already been downloaded from the repository.')
-    except KeyboardInterrupt:
-        stopFlag.set()
+    # try:
+    if not downloaded_dataset():
+        if os.path.isdir(facemotion_dir):
+            shutil.rmtree(facemotion_dir)
+        print('The dataset is going to be downloaded from the repository...')
+        # stopFlag = Event()
+        # thread = MyThread(stopFlag)
+        # thread.start()
+        git.Git(datasets_dir).clone(url_repo)
+        # stopFlag.set()
+    else:
+        print('The dataset has already been downloaded from the repository.')
+    # except KeyboardInterrupt:
+        # stopFlag.set()
 
 
 
