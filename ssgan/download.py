@@ -254,7 +254,8 @@ def clone_repo():
         # stopFlag = Event()
         # thread = MyThread(stopFlag)
         # thread.start()
-        git.Git(datasets_dir).clone(url_repo)
+        # git.Git(datasets_dir).clone(url_repo)
+        os.system("git clone https://github.com/ValentinRicher/facemotion.git")
         # stopFlag.set()
     else:
         print('The dataset has already been downloaded from the repository.')
