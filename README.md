@@ -10,10 +10,12 @@ Now the possibility to run the code with the facemotion repository !
 - Add metrics for the real or fake images ✅
 - Connect the GAN repo with the dataset repo to create automatic downloading ✅
 - Re-organize the facemotion.py to the same level as other .py files ✅
-- Use Google Cloud Platform
-- Use Google Colab
+- Use Google Cloud Platform ❌ -> impossible to use a GPU without paying
+- Use Google Colab ❌ -> impossible to download the dataset quickly
+- Re-organize the code to make it more modular and easy to test different parameters
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
+
 
 # Acknowledgments
 
