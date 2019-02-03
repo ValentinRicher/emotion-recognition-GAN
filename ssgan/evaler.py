@@ -1,30 +1,20 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-from six.moves import xrange
-import numpy as np
-
-from util import log
+import os
+import pdb
+import time
+from pathlib import Path
 from pprint import pprint
 
-from model import Model  
-from input_ops import create_input_ops, check_data_id
-import pdb
-import os
-import time
-import numpy as np
-import tensorflow as tf
 import h5py
+import numpy as np
+from six.moves import xrange
 
-# import sys
-# sys.path.append('./datasets/')
-
-
-def concordance_cc2(r1, r2):
-     mean_cent_prod = ((r1 - r1.mean()) * (r2 - r2.mean())).mean()
-     return (2 * mean_cent_prod) / (r1.var() + r2.var() + (r1.mean() - r2.mean()) ** 2)
-
+import tensorflow as tf
+from input_ops import check_data_id, create_input_ops
+from model import Model
+from ruamel.yaml import YAML
+from util import log
 
 
 class EvalManager(object):
@@ -42,24 +32,22 @@ class EvalManager(object):
 
     def add_batch(self, id, prediction_real, prediction_false, groundtruth):
 
-        # for now, store them all (as a list of minibatch chunks)
         self._ids.append(id)
         self._predictions_real.append(prediction_real)
         self._predictions_false.append(prediction_false)
         self._groundtruths.append(groundtruth)
 
-    def report(self,fld1):
+    def report(self, save_path):
         
-        write_result = fld1+'/error.txt'
-        write_prds = fld1+'/predictions.txt'
-        write_labs = fld1+'/labels.txt'
-        write_images = fld1+'/images.txt'
+        write_result = save_path+'/error.txt'
+        write_prds = save_path+'/predictions.txt'
+        write_labs = save_path+'/labels.txt'
+        write_images = save_path+'/images.txt'
 
         n = self.num_class
         n_AU = 8 if n in (8, 10) else 0
         n_VA = 2 if n in (2, 10) else 0
 
-        # report L2 loss
         log.info("Computing scores...")
 
         predictions_real = np.reshape(self._predictions_real, (-1, n+1))
@@ -71,7 +59,7 @@ class EvalManager(object):
             for line in predictions_real:  
                 for li in line[:-1]: 
                     aa.write(str(li)+' ')
-                aa.write('                            '+str(line[-1])+'\n')
+                aa.write('\t'+str(line[-1])+'\n')
         
         with open(write_labs, "w") as aa:
             for line in labels:
@@ -119,7 +107,7 @@ class EvalManager(object):
         fp = float(len([elem for elem in real_fake_fake if elem == 0]))/len(real_fake_fake)
         rf_precision = tp / (tp+fp)
         rf_recall = tp / (tp+fn)
-        rf_acc = (tp + tn) + (tp + tn + fp + fn)
+        rf_acc = (tp + tn) / (tp + tn + fp + fn)
         rf_f1 = 2*(rf_precision * rf_recall) / (rf_precision + rf_recall)
 
         with open(write_result, "w") as tr:
@@ -131,6 +119,11 @@ class EvalManager(object):
             tr.write('rf recall : {} \n'.format(str(rf_recall)))
             tr.write('rf_acc : {} \n'.format(str(rf_acc)))
             tr.write('rf_f1 : {} \n'.format(str(rf_f1)))
+
+
+        def concordance_cc2(r1, r2):
+            mean_cent_prod = ((r1 - r1.mean()) * (r2 - r2.mean())).mean()
+            return (2 * mean_cent_prod) / (r1.var() + r2.var() + (r1.mean() - r2.mean()) ** 2)
 
 
         if self.config.model in ('VA', 'BOTH'):
@@ -152,9 +145,6 @@ class EvalManager(object):
 
 
         if self.config.model in ('AU', 'BOTH'):
-
-            # pppredictions = np.reshape(ppredictions,[-1,n_AU+1])
-            # ppredictions = ppredictions[:,:-1]
 
             recall_per_class = np.zeros((n_AU))
             f1_per_class = np.zeros((n_AU))
@@ -253,9 +243,6 @@ class Evaler(object):
         self.checkpoint_path = config.checkpoint_path
         if self.checkpoint_path is None and self.train_dir:
             self.checkpoint_path = tf.train.latest_checkpoint(self.train_dir)
-        if self.checkpoint_path is None:
-            log.warn("No checkpoint is given. Just random initialization :-)")
-            self.session.run(tf.global_variables_initializer())
         else:
             log.info("Checkpoint path : %s", self.checkpoint_path)
 
@@ -280,10 +267,9 @@ class Evaler(object):
 
         evaler = EvalManager(config)
         try:
-            for s in xrange(max_steps):
-                step, step_time, batch_chunk, prediction_pred_real, prediction_pred_fake, prediction_gt = \
+            for _ in xrange(max_steps):
+                batch_chunk, prediction_pred_real, prediction_pred_fake, prediction_gt = \
                     self.run_single_step(self.batch)
-                #self.log_step_message(s, loss, step_time)
                 evaler.add_batch(batch_chunk['id'], prediction_pred_real, prediction_pred_fake, prediction_gt)
 
         except Exception as e:
@@ -294,11 +280,10 @@ class Evaler(object):
             coord.join(threads, stop_grace_period_secs=3)
         except RuntimeError as e:
             log.warn(str(e))
-        fld1 = self.checkpoint_path
-        if not os.path.exists(fld1):
-            os.makedirs(fld1)
 
-        evaler.report(fld1)
+        if not os.path.exists(self.checkpoint_path):
+            os.makedirs(self.checkpoint_path)
+        evaler.report(self.checkpoint_path)
         log.infov("Evaluation complete.")
 
     def run_single_step(self, batch, step=None, is_train=False):
@@ -313,21 +298,8 @@ class Evaler(object):
 
         _end_time = time.time()
 
-        return step, (_end_time - _start_time), batch_chunk, all_preds_real, all_preds_fake, all_targets
+        return batch_chunk, all_preds_real, all_preds_fake, all_targets
 
-    def log_step_message(self, step, accuracy, step_time, is_train=False):
-        if step_time == 0: step_time = 0.001
-        log_fn = (is_train and log.info or log.infov)
-        log_fn((" [{split_mode:5s} step {step:4d}] " +
-                "batch total-accuracy (test): {test_accuracy:.2f}% " +
-                "({sec_per_batch:.3f} sec/batch, {instance_per_sec:.3f} instances/sec) "
-                ).format(split_mode=(is_train and 'train' or 'val'),
-                         step=step,
-                         test_accuracy=accuracy*100,
-                         sec_per_batch=step_time,
-                         instance_per_sec=self.batch_size / step_time,
-                         )
-               )
 
 def main():
     import argparse
@@ -335,17 +307,19 @@ def main():
     parser.add_argument('--model', type=str, choices=['AU', 'VA', 'BOTH'])
     parser.add_argument('-is', '--img_size', type=int, choices=[32, 64, 96])
     parser.add_argument('-bs', '--batch_size', type=int, default=64)
-    parser.add_argument('-cp', '--checkpoint_path', type=str)
-    parser.add_argument('-td', '--train_dir', type=str)
+    parser.add_argument('-cp', '--checkpoint_path', type=str, help='The model to be evaluated')
+    parser.add_argument('-td', '--train_dir', type=str, help='The last model saved will be evaluated')
     parser.add_argument('--data_id', nargs='*', default=None)
     config = parser.parse_args()
 
     import facemotion as dataset
 
     if config.checkpoint_path is not None:
+        config.checkpoint_path = paths['logs_dir'] + config.checkpoint_path
         config.model = config.checkpoint_path.split('/')[-3].split('-')[0]
         config.img_size = int(config.checkpoint_path.split('/')[-3].split('-')[1].split('_')[1])
     elif config.train_dir is not None:
+        config.train_dir = paths['logs_dir'] + config.train_dir
         config.model = config.train_dir.split('/')[-2].split('-')[0]
         config.img_size = int(config.train_dir.split('/')[-2].split('-')[1].split('_')[1])
     else:
@@ -362,4 +336,8 @@ def main():
     evaler.eval_run(config)
 
 if __name__ == '__main__':
+    yaml_path = Path('config.yaml')
+    yaml = YAML(typ='safe')
+    config = yaml.load(yaml_path)
+    paths = config['paths']
     main()
