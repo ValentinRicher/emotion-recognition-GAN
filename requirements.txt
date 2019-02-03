@@ -62,6 +62,8 @@ python-dateutil==2.7.3
 pytz==2018.5
 pyzmq==17.1.2
 requests==2.21.0
+ruamel.ordereddict==0.4.13
+ruamel.yaml==0.15.87
 scandir==1.9.0
 scipy==1.1.0
 seaborn==0.9.0
