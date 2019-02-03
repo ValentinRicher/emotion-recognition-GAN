@@ -117,7 +117,7 @@ class Trainer(object):
         self.summary_op = tf.summary.merge_all()
 
         self.saver = tf.train.Saver(max_to_keep=1000)
-        self.summary_writer = tf.summary.FileWriter(self.train_dir)
+        self.train_writer = tf.summary.FileWriter(self.train_dir)
         self.test_writer = tf.summary.FileWriter(self.test_dir)
 
         self.checkpoint_secs = 600  # 10 min
@@ -127,7 +127,7 @@ class Trainer(object):
             is_chief=True,
             saver=None,
             summary_op=None,
-            summary_writer=self.summary_writer,
+            summary_writer=self.train_writer,
             save_summaries_secs=300,
             save_model_secs=self.checkpoint_secs,
             global_step=self.global_step,
@@ -155,27 +155,28 @@ class Trainer(object):
         test_sample_step = 100
 
         for s in xrange(max_steps):
-            step, summary, GAN_loss, d_loss, g_loss, s_loss, step_time, prediction_train, gt_train, g_img \
+            step, train_summary, GAN_loss, d_loss, g_loss, s_loss, step_time, g_img \
                 = self.run_single_step(self.batch_train, step=s, is_train=True)
+
+            self.train_writer.add_summary(train_summary, global_step=step)
+            if s % 10 == 0:
+                self.log_step_message(s, GAN_loss, d_loss, g_loss, s_loss, step_time)
 
             # periodic inference
             if s % test_sample_step == 0:
-                test_sum, prediction_test, gt_test, rf_precision, rf_recall, rf_f1, rf_acc = \
+                test_summary, GAN_loss, d_loss, g_loss, s_loss, step_time = \
                     self.run_test(self.batch_test, is_train=False)
-                self.test_writer.add_summary(test_sum, global_step=step)
-
-            if s % 10 == 0:
-                self.log_step_message(step, GAN_loss, d_loss, g_loss, s_loss, step_time)
-
-            self.summary_writer.add_summary(summary, global_step=step)
+                self.test_writer.add_summary(test_summary, global_step=step)
+                self.log_step_message(s, GAN_loss, d_loss, g_loss, s_loss, step_time, is_train=False)
 
             if s % output_save_step == 0:
                 log.infov("Saved checkpoint at %d", s)
-                save_path = self.saver.save(self.session, os.path.join(self.train_dir, 'model'), global_step=step)
+                self.saver.save(self.session, os.path.join(self.train_dir, 'model'), global_step=step)
                 if self.config.dump_result:
                     f = h5py.File(os.path.join(self.train_dir, 'g_img_'+str(s)+'.hy'), 'w')
                     f['image'] = g_img
                     f.close()
+
 
     def run_single_step(self, batch, step=None, is_train=True):
         _start_time = time.time()
@@ -183,7 +184,7 @@ class Trainer(object):
         batch_chunk = self.session.run(batch)
 
         fetch = [self.global_step, self.summary_op, self.model.GAN_loss, self.model.d_loss, self.model.g_loss,
-                 self.model.S_loss, self.model.all_preds_real, self.model.all_targets, self.model.fake_img]
+                 self.model.S_loss, self.model.fake_img]
 
         fetch.append(self.check_op)
 
@@ -197,25 +198,31 @@ class Trainer(object):
         fetch_values = self.session.run(fetch,
             feed_dict=self.model.get_feed_dict(batch_chunk, step=step)
         )
-        [step, summary, GAN_loss, d_loss, g_loss, s_loss, all_preds, all_targets, g_img] = fetch_values[:9]
+        [step, summary, GAN_loss, d_loss, g_loss, s_loss, g_img] = fetch_values[:7]
 
         _end_time = time.time()
 
-        return step, summary, GAN_loss, d_loss, g_loss, s_loss,  (_end_time - _start_time), all_preds, all_targets, g_img
+        return step, summary, GAN_loss, d_loss, g_loss, s_loss,  (_end_time - _start_time), g_img
+
 
     def run_test(self, batch, is_train=False, repeat_times=8):
 
+        _start_time = time.time()
         batch_chunk = self.session.run(batch)
 
-        fetch_gen = [self.summary_op, self.global_step, self.model.all_preds_real, self.model.all_targets]
-        fetch_metrics_rf = [self.model.rf_precision, self.model.rf_recall, self.model.rf_f1, self.model.rf_acc]
-        #fetch_metrics_au = [self.model.au_precision, self.model.au_recall, self.model.au_f1, self.model.au_acc]
-        fetch = fetch_gen + fetch_metrics_rf
+        fetch_gen = [self.summary_op, self.global_step, self.model.GAN_loss, self.model.d_loss, self.model.g_loss,
+                 self.model.S_loss]
+        # fetch_metrics_rf = [self.model.rf_precision, self.model.rf_recall, self.model.rf_f1, self.model.rf_acc]
+        # fetch_metrics_au = [self.model.au_precision, self.model.au_recall, self.model.au_f1, self.model.au_acc]
+        fetch = fetch_gen
 
-        [summary, step, all_preds, all_targets, rf_precision, rf_recall, rf_f1, rf_acc] = \
+        [summary, _, GAN_loss, d_loss, g_loss, s_loss] = \
             self.session.run(fetch, feed_dict=self.model.get_feed_dict(batch_chunk, is_training=False))
+        
+        _end_time = time.time()
 
-        return summary, all_preds, all_targets, rf_precision, rf_recall, rf_f1, rf_acc
+        return summary, GAN_loss, d_loss, g_loss, s_loss, (_end_time - _start_time)
+
 
     def log_step_message(self, step, GAN_loss, d_loss, g_loss, s_loss, step_time, is_train=True):
         if step_time == 0: step_time = 0.001

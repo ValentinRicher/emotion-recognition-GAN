@@ -316,10 +316,10 @@ class Model(object):
                     tf.summary.scalar("f1/" + au, self.au_f1[i])
                     tf.summary.scalar("accuracy/" + au, self.au_acc[i])
                 self.au_precision_mean, self.au_recall_mean, self.au_f1_mean, self.au_acc_mean = build_metrics_mean(self.au_precision, self.au_recall, self.au_f1, self.au_acc)
-                tf.summary("precision/au_mean", self.au_precision_mean)
-                tf.summary("recall/au_mean", self.au_recall_mean)
-                tf.summary("f1/au_mean", self.au_f1_mean)
-                tf.summary("accuracy/au_mean", self.au_acc_mean)
+                tf.summary.scalar("precision/au_mean", self.au_precision_mean)
+                tf.summary.scalar("recall/au_mean", self.au_recall_mean)
+                tf.summary.scalar("f1/au_mean", self.au_f1_mean)
+                tf.summary.scalar("accuracy/au_mean", self.au_acc_mean)
         # }}}
 
         build_metrics()
