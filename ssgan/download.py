@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tarfile
 import threading
+from pathlib import Path
 from threading import Event, Thread
 
 import h5py
@@ -18,9 +19,7 @@ import facemotion
 import git
 import progressbar
 import tensorflow as tf
-
 from ruamel.yaml import YAML
-from pathlib import Path
 
 
 def create_h5py(train_image, train_label, test_image, test_label, data_dir, model, img_size):
