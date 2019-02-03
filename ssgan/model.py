@@ -73,7 +73,7 @@ class Model(object):
             #alpha = 0.9
             real_label = tf.concat([label, tf.zeros([self.batch_size, 1])], axis=1)
             #fake_label = tf.concat([(1-alpha)*tf.ones([self.batch_size, n])/n, alpha*tf.ones([self.batch_size, 1])], axis=1)
-            fake_label = tf.concat([tf.zeros([self.batch_size, n]), tf.ones([self.batch_size, n])], axis=1)		
+            fake_label = tf.concat([tf.zeros([self.batch_size, n]), tf.ones([self.batch_size, 1])], axis=1)		
 
             # Supervised loss
             s_loss = tf.reduce_mean(huber_loss(label[:,:n], d_real[:, :n]))
@@ -169,7 +169,7 @@ class Model(object):
 
                 pred_rf = tf.reshape(tf.sigmoid(output[:,-1]), [self.batch_size,1])
                 if self.config.model in ('VA', 'BOTH'):
-                    pred_va = tf.nn.softmax(output[:, :n_VA])
+                    pred_va = tf.nn.tanh(output[:, :n_VA])
                 if self.config.model in ('AU', 'BOTH'):
                     pred_au = tf.sigmoid(output[:, n-n_AU:n])
 
@@ -185,6 +185,7 @@ class Model(object):
 
         # Generator {{{
         # =========
+        # input is a normal noise between -1 and 1
         z = tf.random_uniform([self.batch_size, n_z], minval=-1, maxval=1, dtype=tf.float32)
         fake_image = G(z)
         self.fake_img = fake_image
@@ -201,7 +202,7 @@ class Model(object):
 
 
         self.S_loss, d_loss_real, d_loss_fake, self.d_loss, self.g_loss, self.GAN_loss = \
-            build_loss(d_real, d_real_logits, d_fake, d_fake_logits, self.label, self.image, fake_image)
+            build_loss(d_real, d_real_logits, d_fake, d_fake_logits, self.label, self.image, self.fake_img)
 
         
 
@@ -250,10 +251,12 @@ class Model(object):
 
             return au_precision, au_recall, au_f1, au_acc
 
-        def build_metrics_mean(au_f1, au_acc):
+        def build_metrics_mean(au_precision, au_recall, au_f1, au_acc):
+            au_precision_mean = tf.reduce_mean(au_precision)
+            au_recall_mean = tf.reduce_mean(au_recall)
             au_f1_mean = tf.reduce_mean(au_f1)
             au_acc_mean = tf.reduce_mean(au_acc)
-            return au_f1_mean, au_acc_mean
+            return au_precision_mean, au_recall_mean, au_f1_mean, au_acc_mean
 
 
         # Metrics for distinguishing real and fake images
@@ -286,7 +289,7 @@ class Model(object):
             tf.summary.scalar("loss/d_loss_real", tf.reduce_mean(d_loss_real))
             tf.summary.scalar("loss/d_loss_fake", tf.reduce_mean(d_loss_fake))
             tf.summary.scalar("loss/g_loss", tf.reduce_mean(self.g_loss))
-            tf.summary.image("img/fake", fake_image)
+            tf.summary.image("img/fake", self.fake_img)
             tf.summary.image("img/real", self.image, max_outputs=1)
             #tf.summary.image("label/target_real", tf.reshape(self.label, [1, self.batch_size, n, 1]))
             #tf.summary.image("label/pred_real", tf.reshape(tf.cast(tf.greater(d_real[:, n-n_AU:n], 0.5*tf.ones([self.batch_size, 8])), dtype=np.float32), [1, self.batch_size, n_AU, 1]))
@@ -312,6 +315,11 @@ class Model(object):
                     tf.summary.scalar("recall/" + au, self.au_recall[i])
                     tf.summary.scalar("f1/" + au, self.au_f1[i])
                     tf.summary.scalar("accuracy/" + au, self.au_acc[i])
+                self.au_precision_mean, self.au_recall_mean, self.au_f1_mean, self.au_acc_mean = build_metrics_mean(self.au_precision, self.au_recall, self.au_f1, self.au_acc)
+                tf.summary("precision/au_mean", self.au_precision_mean)
+                tf.summary("recall/au_mean", self.au_recall_mean)
+                tf.summary("f1/au_mean", self.au_f1_mean)
+                tf.summary("accuracy/au_mean", self.au_acc_mean)
         # }}}
 
         build_metrics()

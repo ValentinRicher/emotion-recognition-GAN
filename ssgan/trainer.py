@@ -1,37 +1,38 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import configparser
+import os
+import time
+from pathlib import Path
+from pprint import pprint
+
+import h5py
+import numpy as np
+from six.moves import xrange
+
+import tensorflow as tf
+import tensorflow.contrib.slim as slim
+from input_ops import create_input_ops
+from model import Model
+from ruamel.yaml import YAML
+from util import log
 
 try:
     import better_exceptions
 except ImportError:
     pass
 
-from six.moves import xrange
 
-from util import log
-from pprint import pprint
+yaml_path = Path('config.yaml')
+yaml = YAML(typ='safe')
+config = yaml.load(yaml_path)
+paths = config['paths']
+h5py_dir = paths['h5py_dir']
+logs_dir = paths['logs_dir']
 
-from model import Model
-import tensorflow.contrib.slim as slim
-from input_ops import create_input_ops
-
-import os
-import time
-import numpy as np
-import tensorflow as tf
-import h5py
-import configparser
-
-# import sys
-# sys.path.append('./datasets/')
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-h5py_dir = config['PATH']['h5py_dir']
-logs_dir = config['PATH']['logs_dir']
 
 class Trainer(object):
+
     def __init__(self,
                  config,
                  dataset,
@@ -147,7 +148,6 @@ class Trainer(object):
 
     def train(self):
         log.infov("Training Starts!")
-        pprint(self.batch_train)
 
         max_steps = 1000000
 
@@ -163,7 +163,6 @@ class Trainer(object):
                 test_sum, prediction_test, gt_test, rf_precision, rf_recall, rf_f1, rf_acc = \
                     self.run_test(self.batch_test, is_train=False)
                 self.test_writer.add_summary(test_sum, global_step=step)
-
 
             if s % 10 == 0:
                 self.log_step_message(step, GAN_loss, d_loss, g_loss, s_loss, step_time)

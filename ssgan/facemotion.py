@@ -1,27 +1,30 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
+import configparser
+import glob
 import os.path
+from pathlib import Path
+
+import h5py
 import numpy as np
 import scipy.io
 import scipy.ndimage as sn
-import h5py
-import glob
-import configparser
 
+from ruamel.yaml import YAML
 from util import log
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-h5py_dir = config['PATH']['h5py_dir']
+yaml_path = Path('config.yaml')
+yaml = YAML(typ='safe')
+config = yaml.load(yaml_path)
+paths = config['paths']
+h5py_dir = paths['h5py_dir']
 
-rs = np.random.RandomState(123)
 
 class Dataset(object):
 
     def __init__(self, ids, img_size, model, name='default',
                  max_examples=None, is_train=True):
+
         self._ids = list(ids)
         self.name = name
         self.is_train = is_train
@@ -95,12 +98,11 @@ def get_test_videos():
     return [1, 11, 16, 21, 29, 31, 39, 45, 49, 51]
 
 def get_data_dir():
-    PATH_TO_DATA = config['PATH']['facemotion_dir']
+    PATH_TO_DATA = paths['facemotion_dir']
     return PATH_TO_DATA
 
 def create_default_splits(img_size, model, is_train=True):
     ids = all_ids(img_size, model)
-    n = len(ids)
     data_dir = get_data_dir()
     train_videos = get_train_videos()
     test_videos = get_test_videos()
@@ -123,9 +125,8 @@ def create_default_splits(img_size, model, is_train=True):
 def all_ids(img_size, model):
 
     id_filename = model + '_' + str(img_size) + '_id.txt'
-
     id_txt = os.path.join(h5py_dir, id_filename)
-    print(id_txt)
+
     try:
         with open(id_txt, 'r') as fp:
             _ids = [s.strip() for s in fp.readlines() if s]
