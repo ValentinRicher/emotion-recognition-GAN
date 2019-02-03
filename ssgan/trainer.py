@@ -37,7 +37,9 @@ class Trainer(object):
                  config,
                  dataset,
                  dataset_test):
+
         self.config = config
+
         hyper_parameter_str = config.model + '-is_' + str(config.img_size) + '-bs_' + str(config.batch_size) + \
         '-lr_' + "{:.2E}".format(config.learning_rate) + '-ur_' + str(config.update_rate)
         self.train_dir = logs_dir+ '/%s-%s/train_dir/' % (
@@ -149,10 +151,9 @@ class Trainer(object):
     def train(self):
         log.infov("Training Starts!")
 
-        max_steps = 1000000
-
-        output_save_step = 1000
-        test_sample_step = 100
+        max_steps = self.config.max_steps
+        test_sample_step = self.config.test_sample_step
+        output_save_step = self.config.output_save_step
 
         for s in xrange(max_steps):
             step, train_summary, GAN_loss, d_loss, g_loss, s_loss, step_time, g_img \
@@ -253,6 +254,9 @@ def main():
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-4)
     parser.add_argument('-ur', '--update_rate', type=int, default=5)
     parser.add_argument('--lr_weight_decay', action='store_true', default=False)
+    parser.add_argument('--max_steps', type=int, default=1000000, help='Maximum number of iterations')
+    parser.add_argument('--output_save_step', type=int, default=1000, help='Frequency of image saving')
+    parser.add_argument('--test_sample_step', type=int, default=100, help='Frequency of testing on the testing set')
     parser.add_argument('--dump_result', action='store_true', default=False)
     parser.add_argument('--checkpoint', type=str, default=None)
     config = parser.parse_args()
