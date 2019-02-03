@@ -1,0 +1,6 @@
+paths:
+  repo_url: https://github.com/ValentinRicher/facemotion.git
+  datasets_dir: ../datasets/
+  facemotion_dir: ../datasets/facemotion/
+  h5py_dir: ../datasets/h5py/
+  logs_dir: ../logs/

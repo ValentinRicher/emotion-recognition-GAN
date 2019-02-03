@@ -1,36 +1,31 @@
-from __future__ import division
-from __future__ import print_function
-import os
-import tarfile
-import subprocess
+from __future__ import division, print_function
+
 import argparse
-import h5py
-import numpy as np
-from PIL import Image
-import tensorflow as tf
 import glob
-import sys
-import progressbar
-import git
+import os
 import shutil
-import configparser
+import subprocess
+import sys
+import tarfile
 import threading
 from threading import Event, Thread
 
+import h5py
+import numpy as np
+from PIL import Image
+
 import facemotion
+import git
+import progressbar
+import tensorflow as tf
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-datasets_dir = config['PATH']['datasets_dir']
-facemotion_dir = config['PATH']['facemotion_dir']
-
-parser = argparse.ArgumentParser(description='Download dataset for SSGAN.')
-
-parser.add_argument('--model', type=str, choices=['AU', 'VA', 'BOTH'], default='BOTH')
-parser.add_argument('--img_size', type=int, choices=[32, 64, 96], default=32)
+from ruamel.yaml import YAML
+from pathlib import Path
 
 
-def create_h5py(train_image, train_label, test_image, test_label, data_dir, shape=None):
+def create_h5py(train_image, train_label, test_image, test_label, data_dir, model, img_size):
+
+    shape = [img_size, img_size, 3]
 
     image = np.concatenate((train_image, test_image), axis=0).astype(np.uint8)
     label = np.concatenate((train_label, test_label), axis=0).astype(np.float32)
@@ -42,8 +37,8 @@ def create_h5py(train_image, train_label, test_image, test_label, data_dir, shap
                                            progressbar.Percentage()])
     bar.start()
 
-    name_data = args.model + '_' + str(args.img_size) + '_data.hy' 
-    name_id = args.model + '_' + str(args.img_size) + '_id.txt'
+    name_data = model + '_' + str(img_size) + '_data.hy' 
+    name_id = model + '_' + str(img_size) + '_id.txt'
     f = h5py.File(os.path.join(data_dir, name_data), 'w')
     data_id = open(os.path.join(data_dir, name_id), 'w')
 
@@ -65,10 +60,11 @@ def create_h5py(train_image, train_label, test_image, test_label, data_dir, shap
     data_id.close()
     return
 
-def check_h5py_file(h5py_dir):
+
+def check_h5py_file(h5py_dir, model, img_size):
     if os.path.exists(h5py_dir):
-        name_data = args.model + '_' + str(args.img_size) + '_data.hy' 
-        name_id = args.model + '_' + str(args.img_size) + '_id.txt'
+        name_data = model + '_' + str(img_size) + '_data.hy' 
+        name_id = model + '_' + str(img_size) + '_id.txt'
         if os.path.isfile(os.path.join(h5py_dir + name_data)) and \
             os.path.isfile(os.path.join(h5py_dir + name_id)):
             return True
@@ -76,13 +72,10 @@ def check_h5py_file(h5py_dir):
         os.mkdir(h5py_dir)
     return False
 
-def process_dataset(download_path, img_size):
 
-    data_dir = '/content/emotion-recognition-GAN/datasets/facemotion/'
-    # data_dir = os.path.join(download_path)
+def process_dataset(model, img_size):
 
-    h5py_dir = config['PATH']['h5py_dir']
-    if check_h5py_file(h5py_dir):
+    if check_h5py_file(h5py_dir, model, img_size):
         print('The H5PY files has already been created.')
         return
     else:
@@ -94,11 +87,11 @@ def process_dataset(download_path, img_size):
     test_label = []
     n_vas = 2
     n_aus = 8
-    if args.model == 'AU':
+    if model == 'AU':
         num_classes = n_aus
-    elif args.model == 'VA':
+    elif model == 'VA':
         num_classes = n_vas
-    elif args.model == 'BOTH':
+    elif model == 'BOTH':
         num_classes = n_vas + n_aus
 
     # list of videos part of the training data
@@ -138,8 +131,8 @@ def process_dataset(download_path, img_size):
     bar.start()
     num_images_train = 0
     num_images_test = 0
-    for counter, folder in enumerate(sorted(glob.glob(data_dir + 'final_images/*'))):
-        bar.update((counter/64)*100)
+    for i, folder in enumerate(sorted(glob.glob(facemotion_dir + 'final_images/*'))):
+        bar.update((i/64)*100)
         for img_filename in sorted(glob.glob(folder + '/*jpg')):
             if (int(os.path.basename(folder)) in train_videos):
                 num_images_train += 1
@@ -162,17 +155,17 @@ def process_dataset(download_path, img_size):
             line_va = [line.split(" ")[0]] + [line.split(" ")[1]]
             line_au = line.split('[')[1].split(']')[0].split(' ')
             line_all = line_va + line_au
-            if (args.model == 'AU'):
+            if (model == 'AU'):
                 labels.append(np.array(line_au, dtype=float))
-            elif (args.model == 'VA'):
+            elif (model == 'VA'):
                 labels.append(np.array(line_va, dtype=float))
-            elif (args.model == 'BOTH'):
+            elif (model == 'BOTH'):
                 labels.append(np.array(line_all, dtype=float))
         return n_labels
 
     num_labels_train = 0
     num_labels_test = 0
-    for file in sorted(glob.glob(data_dir + '/final_annotations/*.txt')):
+    for file in sorted(glob.glob(facemotion_dir + '/final_annotations/*.txt')):
         file_name = os.path.basename(file)
         file_num = file_name.split('.')[0].split('_')[2]
         if (int(file_num) in train_videos):
@@ -191,36 +184,12 @@ def process_dataset(download_path, img_size):
     train_label = np.reshape(train_label, [num_labels_train, num_classes])
     test_label = np.reshape(test_label, [num_labels_test,num_classes])
 
-    create_h5py(train_image, train_label, test_image, test_label, h5py_dir, [img_size, img_size, 3])
+    create_h5py(train_image, train_label, test_image, test_label, h5py_dir, model, img_size)
 
-
-# class MyThread(Thread):
-#     '''
-#     Created to see the progression of the dataset downloading
-#     '''
-#     def __init__(self, event):
-#         Thread.__init__(self)
-#         self.stopped = event
-
-#     def run(self):
-#         while not os.path.isdir(facemotion_dir + 'final_images/'):
-#             self.stopped.wait(0.1)
-#         print('bar')
-#         bar = progressbar.ProgressBar(maxval=100,
-#                                   widgets=[progressbar.Bar('=', '[', ']'), ' ',
-#                                            progressbar.Percentage()])
-#         bar.start()
-#         folder_num = 1
-#         while not self.stopped.wait(0.5) and folder_num<64:
-#             empty = not os.listdir(facemotion_dir + 'final_images/'+str(folder_num).zfill(2))
-#             if not empty:
-#                 bar.update((folder_num/64)*100)
-#                 folder_num += 1
-#         bar.finish()
 
 def downloaded_dataset():
     '''
-    Check if the dataset has already been downloaded or not
+    Check if the dataset has already been downloaded or not.
     '''
     if os.path.isdir(facemotion_dir):
         ann_n = 0
@@ -240,32 +209,40 @@ def downloaded_dataset():
     else:
         return False
 
-def clone_repo():
+
+def clone_repo(repo_url):
     '''
-    Clone the repository containing the original videos with annotations
+    Clone the repository containing the original videos with annotations.
     '''
-    url_repo = config['PATH']['url_repo']
     if not os.path.exists(datasets_dir): os.mkdir(datasets_dir)
-    # try:
     if not downloaded_dataset():
         if os.path.isdir(facemotion_dir):
             shutil.rmtree(facemotion_dir)
         print('The dataset is going to be downloaded from the repository...')
-        # stopFlag = Event()
-        # thread = MyThread(stopFlag)
-        # thread.start()
-        git.Git(datasets_dir).clone(url_repo)
-        # os.system("git clone https://github.com/ValentinRicher/facemotion.git")
-        # stopFlag.set()
+        os.chdir(datasets_dir)
+        subprocess.call(['git', 'clone', repo_url])
     else:
         print('The dataset has already been downloaded from the repository.')
-    # except KeyboardInterrupt:
-        # stopFlag.set()
 
 
 
 if __name__ == '__main__':
-    clone_repo()
+
+    yaml_path = Path('config.yaml')
+    yaml = YAML(typ='safe')
+    config = yaml.load(yaml_path)
+    paths = config['paths']
+    repo_url = paths['repo_url']
+    datasets_dir = paths['datasets_dir']
+    facemotion_dir = paths['facemotion_dir']
+    h5py_dir = paths['h5py_dir']
+
+    parser = argparse.ArgumentParser(description='Download dataset for SSGAN.')
+    parser.add_argument('--model', type=str, choices=['AU', 'VA', 'BOTH'], default='BOTH')
+    parser.add_argument('--img_size', type=int, choices=[32, 64, 96], default=32)
+
+    clone_repo(repo_url)
     args = parser.parse_args()
     img_size = args.img_size
-    process_dataset(facemotion_dir, img_size)
+    model = args.model
+    process_dataset(model, img_size)
