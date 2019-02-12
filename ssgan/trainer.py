@@ -154,21 +154,27 @@ class Trainer(object):
         max_steps = self.config.max_steps
         test_sample_step = self.config.test_sample_step
         output_save_step = self.config.output_save_step
+        save_step = self.config.save_step
 
         for s in xrange(max_steps):
             step, train_summary, GAN_loss, d_loss, g_loss, s_loss, step_time, g_img \
                 = self.run_single_step(self.batch_train, step=s, is_train=True)
 
-            self.train_writer.add_summary(train_summary, global_step=step)
             if s % 10 == 0:
                 self.log_step_message(s, GAN_loss, d_loss, g_loss, s_loss, step_time)
 
-            # periodic inference
-            if s % test_sample_step == 0:
+            if (s % test_sample_step == 0) or (s % save_step == 0):
+
+                # periodic inference
                 test_summary, GAN_loss, d_loss, g_loss, s_loss, step_time = \
-                    self.run_test(self.batch_test, is_train=False)
-                self.test_writer.add_summary(test_summary, global_step=step)
-                self.log_step_message(s, GAN_loss, d_loss, g_loss, s_loss, step_time, is_train=False)
+                        self.run_test(self.batch_test, is_train=False)
+
+                if s % test_sample_step == 0:
+                    self.log_step_message(s, GAN_loss, d_loss, g_loss, s_loss, step_time, is_train=False)
+
+                if s % save_step == 0:
+                    self.train_writer.add_summary(train_summary, global_step=step)
+                    self.test_writer.add_summary(test_summary, global_step=step)
 
             if s % output_save_step == 0:
                 log.infov("Saved checkpoint at %d", s)
@@ -257,6 +263,7 @@ def main():
     parser.add_argument('--max_steps', type=int, default=1000000, help='Maximum number of iterations')
     parser.add_argument('--output_save_step', type=int, default=1000, help='Frequency of image saving')
     parser.add_argument('--test_sample_step', type=int, default=100, help='Frequency of testing on the testing set')
+    parser.add_argument('--save_step', type=int, default=1000, help='Frequency of saving the elements')
     parser.add_argument('--dump_result', action='store_true', default=False)
     parser.add_argument('--checkpoint', type=str, default=None)
     config = parser.parse_args()
