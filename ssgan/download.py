@@ -75,7 +75,7 @@ def check_h5py_file(h5py_dir, model, img_size):
 def process_dataset(model, img_size):
 
     if check_h5py_file(h5py_dir, model, img_size):
-        print('The H5PY files has already been created.')
+        print('The H5PY files have already been created for model : {} and image size : {}.'.format(model, img_size))
         return
     else:
         print('The H5PY files are going to be created...')
