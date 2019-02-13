@@ -188,9 +188,11 @@ class EvalManager(object):
 
                 if precision_per_class[i] == -1 or recall_per_class[i] == -1:
                     f1_per_class[i] = -1
-                else:    
-                    f1_per_class[i] = \
-                    2 * precision_per_class[i] * recall_per_class[i] / (precision_per_class[i] + recall_per_class[i])
+                else:
+                    if precision_per_class[i] == 0 and recall_per_class[i] == 0:
+                        f1_per_class[i] = 0 
+                    else:
+                        f1_per_class[i] = 2 * precision_per_class[i] * recall_per_class[i] / float((precision_per_class[i] + recall_per_class[i]))
 
             with open(write_result, "a") as tr:
                 tr.write('recall precision accuracy f1'+'\n')
@@ -325,7 +327,6 @@ def main():
     else:
         raise Exception('Precise the path where the model should be downloaded')
 
-        
     config.dataset = 'FACEMOTION'
     config.data_info = dataset.get_data_info(config.img_size, config.model)
     config.conv_info = dataset.get_conv_info(config.img_size)
