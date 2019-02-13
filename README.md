@@ -13,9 +13,11 @@ Now the possibility to run the code with the facemotion repository !
 - Use Google Cloud Platform ❌ -> impossible to use a GPU without paying
 - Use Google Colab ❌ -> impossible to download the dataset quickly
 - Config file to YAML ✅
+- Add a file to get the info stored in events files created for TensorBoard
 - Do a notice to explain the project and how to use it
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
+- Add an early stopping possibility
 
 
 # Acknowledgments
