@@ -61,16 +61,17 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
     This will download the images from the FaceMotion dataset into a ./datasets/facemotion directory if not already done and create the h5py files with the good labels and image sizes.
 
 
-- Train the models 
+- Train the model
     ```
     python trainer.py --model xx --img_size yy
     ```
     
-- Evaluate the models
+- Evaluate the model
     ```
     python evaler.py --checkpoint_path ckpt_p
     ```
-    `ckpt_p` should be like : 
+    `ckpt_p` should be like : `BOTH-is_32-bs_64-lr_1.00E-04-ur_5-20190217_145915/train_dir/model-201`
+    
 
 
 
