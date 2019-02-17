@@ -16,43 +16,40 @@ Git LFS is necessary to download the images contained in the dataset facemotion
 
 # Setup
 
-Clone the project to your environment :
+1. Clone the project to your environment :
+    ```
+    git clone https://github.com/ValentinRicher/emotion-recognition-GAN.git
+    ```
 
-```
-git clone https://github.com/ValentinRicher/emotion-recognition-GAN.git
-```
+2. Create the virtual environment : 
+  - with virtualenv
+    ```
+    virtualenv <venv-name>
+    ```
+  - or with virtualenvwrapper
+    ```
+    mkvirtualenv <venv-name>
+    ```
 
-Create the virtual environment : 
+3. Activate your virtual environment :
+  - with virtualenv
+    ```
+    source <venv-name>/bin/activate
+    ```
+    - with virtualenvwrapper
+    ```
+    workon <venv-name>
+    ```
 
-with virtualenv
-```
-virtualenv <venv-name>
-```
-or with virtualenvwrapper
-```
-mkvirtualenv <venv-name>
-```
-
-Activate your virtual environment :
-
-with virtualenv
-```
-source <venv-name>/bin/activate
-```
-with virtualenvwrapper
-```
-workon <venv-name>
-```
-
-Install the libraries :
-if you use a GPU (recommended)
-```
-pip install -R gpu-requirements.txt
-```
-if you use a CPU
-```
-pip install -R requirements.txt
-```
+4. Install the libraries :
+  - if you use a GPU (recommended)
+    ```
+    pip install -R gpu-requirements.txt
+    ```
+  - if you use a CPU
+  ```
+  pip install -R requirements.txt
+  ```
 
 
 
