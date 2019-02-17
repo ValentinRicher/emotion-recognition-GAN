@@ -89,7 +89,7 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
 
 #### [default model] -> model : BOTH / image size : 32 / batch_size : 64 / learning rate : 1e-4 / update rate : 5 / 1 000 000 epochs
 
-> In the following grid of images, 1 image is generated for each epoch
+> In the following grid of 1000 images (20 lines, 50 columns), 1 image is generated for every 1000 epoch
 
 Images created by the Generator during training :
 ![train fake images](/images/grid_train_fake_0.png)
