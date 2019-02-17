@@ -75,10 +75,19 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
 
 # Results
 
-#### model : BOTH / image size : 32 / batch_size : 64 / learning rate : 1e-4 / update rate : 5
+#### [default model] -> model : BOTH / image size : 32 / batch_size : 64 / learning rate : 1e-4 / update rate : 5 / 1 000 000 epochs
 
-Images generated during training :
-![fake images](/images/grid_train_fake_0.png)
+Images created by the Generator during training :
+![train fake images](/images/grid_train_fake_0.png)
+
+Images created by the Generator during testing :
+![test fake images](/images/grid_test_fake_0.png)
+
+Real images used for training the Discriminator :
+![train real images](/images/grid_train_real.png)
+
+Real images used for testing the Discriminator :
+![test real images](/images/grid_test_real.png)
 
 # To Do
 
