@@ -264,7 +264,7 @@ def main():
     parser.add_argument('--model_save_step', type=int, default=1000, help='Frequency of model saving')
     parser.add_argument('--test_sample_step', type=int, default=100, help='Frequency of testing on the testing set')
     parser.add_argument('--summary_save_step', type=int, default=1000, help='Frequency of saving the elements to the TF summary')
-    parser.add_argument('--dump_result', action='store_true', default=False, help='If the images are saved')
+    parser.add_argument('--dump_result', action='store_true', help='If the images are saved')
     parser.add_argument('--checkpoint', type=str, default=None)
     config = parser.parse_args()
 

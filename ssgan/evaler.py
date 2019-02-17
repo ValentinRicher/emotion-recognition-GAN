@@ -16,6 +16,8 @@ from model import Model
 from ruamel.yaml import YAML
 from util import log
 
+import glob
+
 
 class EvalManager(object):
 
@@ -245,8 +247,7 @@ class Evaler(object):
         self.checkpoint_path = config.checkpoint_path
         if self.checkpoint_path is None and self.train_dir:
             self.checkpoint_path = tf.train.latest_checkpoint(self.train_dir)
-        else:
-            log.info("Checkpoint path : %s", self.checkpoint_path)
+        log.info("Checkpoint path : %s", self.checkpoint_path)
 
 
     def eval_run(self, config):
@@ -286,6 +287,8 @@ class Evaler(object):
         if not os.path.exists(self.checkpoint_path):
             os.makedirs(self.checkpoint_path)
         evaler.report(self.checkpoint_path)
+        tf.reset_default_graph()
+        self.session.close()
         log.infov("Evaluation complete.")
 
     def run_single_step(self, batch, step=None, is_train=False):
@@ -311,6 +314,7 @@ def main():
     parser.add_argument('-bs', '--batch_size', type=int, default=64)
     parser.add_argument('-cp', '--checkpoint_path', type=str, help='The model to be evaluated')
     parser.add_argument('-td', '--train_dir', type=str, help='The last model saved will be evaluated')
+    parser.add_argument('--all', action='store_true', help='If True, evaluates all the model in the training directory')
     parser.add_argument('--data_id', nargs='*', default=None)
     config = parser.parse_args()
 
@@ -322,8 +326,8 @@ def main():
         config.img_size = int(config.checkpoint_path.split('/')[-3].split('-')[1].split('_')[1])
     elif config.train_dir is not None:
         config.train_dir = paths['logs_dir'] + config.train_dir
-        config.model = config.train_dir.split('/')[-2].split('-')[0]
-        config.img_size = int(config.train_dir.split('/')[-2].split('-')[1].split('_')[1])
+        config.model = config.train_dir.split('/')[-3].split('-')[0]
+        config.img_size = int(config.train_dir.split('/')[-3].split('-')[1].split('_')[1])
     else:
         raise Exception('Precise the path where the model should be downloaded')
 
@@ -333,8 +337,20 @@ def main():
     config.deconv_info = dataset.get_deconv_info(config.img_size)
     _, dataset_test = dataset.create_default_splits(config.img_size, config.model)
 
-    evaler = Evaler(config, dataset_test)
-    evaler.eval_run(config)
+
+    if config.all:
+        for mdl in sorted(glob.glob(config.train_dir + '/model*.meta')):
+            mdl = mdl.split('/')[-1].split('.')[0]
+            config.checkpoint_path = config.train_dir + mdl
+            print(config.checkpoint_path)
+            evaler = Evaler(config, dataset_test)
+            evaler.eval_run(config)
+    else:
+        evaler = Evaler(config, dataset_test)
+        evaler.eval_run(config)
+    
+
+
 
 if __name__ == '__main__':
     yaml_path = Path('config.yaml')
