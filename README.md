@@ -67,7 +67,7 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
     ```
     
 - Evaluate the model
-    - if you want to test a specific model (here model-201)
+    - if you want to test a specific model
       ```
       python evaler.py --checkpoint_path ckpt_p
       ```
@@ -112,7 +112,7 @@ Real images used for testing the Discriminator :
 - Use Google Colab ❌ -> impossible to download the dataset quickly
 - Config file to YAML ✅
 - Add a file to get the info stored in events files created for TensorBoard ✅
-- Do a notice to explain the project and how to use it 
+- Do a notice to explain the project and how to use it ✅
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
 - Add an early stopping possibility
