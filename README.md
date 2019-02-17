@@ -78,6 +78,10 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
       python evaler.py --train_dir tr_d
       ```
       `tr_d` should be like : `BOTH-is_32-bs_64-lr_1.00E-04-ur_5-20190217_145915/train_dir/`
+    - if you want to test all the models in train_dir
+      ```
+      python evaler.py --train_dir tr_d --all
+      ```
 
 > For the moment it is only possible to work with 32\*32 pixels images because the model architecture for 64\*64 and 96\*96 are not ready yet
 
