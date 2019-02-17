@@ -72,6 +72,7 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
     ```
     `ckpt_p` should be like : `BOTH-is_32-bs_64-lr_1.00E-04-ur_5-20190217_145915/train_dir/model-201`
 
+>For the moment it is only possible to work with 32\*32 pixels images because the model architecture for 64\*64 and 96\*96 are not ready yet
 
 # Results
 
@@ -98,7 +99,7 @@ Real images used for testing the Discriminator :
 - Use Google Colab ❌ -> impossible to download the dataset quickly
 - Config file to YAML ✅
 - Add a file to get the info stored in events files created for TensorBoard ✅
-- Do a notice to explain the project and how to use it
+- Do a notice to explain the project and how to use it 
 - Create an architecture for 64*64 images
 - Create an architecture for 96*96 images
 - Add an early stopping possibility
