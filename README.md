@@ -7,12 +7,13 @@ Now the possibility to run the code with the facemotion repository !
 
 # Prerequisites 
 
-- Install an virtual environment manager :
+- Python 2.7
+- Virtual environment manager :
   - [virtualenv](https://virtualenv.pypa.io/en/latest/)
   - [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/)
   
-- Install [Git LFS](https://git-lfs.github.com) <br/>
-Git LFS is necessary to download the images contained in the dataset facemotion
+- [Git LFS](https://git-lfs.github.com) <br/>
+Git LFS is necessary to download the images contained in the FaceMotion dataset
 
 # Setup
 
@@ -50,6 +51,26 @@ Git LFS is necessary to download the images contained in the dataset facemotion
     ```
     pip install -R requirements.txt
     ```
+
+# Usage
+
+- Download the FaceMotion dataset
+    ```
+    python download.py --model xx --img_size yy
+    ```
+    This will download the images from the FaceMotion dataset into a ./datasets/facemotion directory if not already done and create the h5py files with the good labels and image sizes.
+
+
+- Train the models 
+    ```
+    python trainer.py --model xx --img_size yy
+    ```
+    
+- Evaluate the models
+    ```
+    python evaler.py --checkpoint_path ckpt_p
+    ```
+    `ckpt_p` should be like : 
 
 
 
