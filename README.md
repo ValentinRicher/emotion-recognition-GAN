@@ -8,7 +8,7 @@ Now the possibility to run the code with the facemotion repository !
 # Prerequisites 
 
 - Install virtualenv : https://virtualenv.pypa.io/en/latest/
-- Install Git LFS : https://git-lfs.github.com
+- Install Git LFS : https://git-lfs.github.com <br/>
 Git LFS is necessary to download the images contained in the dataset facemotion
 
 # To Do
