@@ -71,8 +71,9 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
     python evaler.py --checkpoint_path ckpt_p
     ```
     `ckpt_p` should be like : `BOTH-is_32-bs_64-lr_1.00E-04-ur_5-20190217_145915/train_dir/model-201`
-    
 
+
+# Results
 
 
 # To Do
