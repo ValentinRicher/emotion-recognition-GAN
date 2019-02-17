@@ -7,9 +7,28 @@ Now the possibility to run the code with the facemotion repository !
 
 # Prerequisites 
 
-- Install virtualenv : https://virtualenv.pypa.io/en/latest/
-- Install Git LFS : https://git-lfs.github.com <br/>
+- Install [virtualenv](https://virtualenv.pypa.io/en/latest/)
+- Install [Git LFS](https://git-lfs.github.com) <br/>
 Git LFS is necessary to download the images contained in the dataset facemotion
+
+# Usage
+
+Clone the project to your environment :
+
+```
+git clone https://github.com/ValentinRicher/emotion-recognition-GAN.git
+```
+
+Create the virtual environment : 
+
+with virtualenv
+```
+virtualenv <venv-name>
+```
+or with virtualenvwrapper
+```
+mkvirtualenv <venv-name>
+```
 
 # To Do
 
