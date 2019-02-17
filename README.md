@@ -75,6 +75,10 @@ Git LFS is necessary to download the images contained in the FaceMotion dataset
 
 # Results
 
+#### model : BOTH / image size : 32 / batch_size : 64 / learning rate : 1e-4 / update rate : 5
+
+Images generated during training :
+![fake images](/images/grid_train_fake_0.png)
 
 # To Do
 
