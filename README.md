@@ -5,6 +5,12 @@ Action Units are facial muscle movements. The combination of these Action Units 
 Valence Arousal is a 2D continuous scale where Valence represents how positive or negative a person is when feeling an emotion and Arousal represents how excited or calm the person is. <br/>
 Now the possibility to run the code with the facemotion repository ! 
 
+# Prerequisites 
+
+- Install virtualenv : https://virtualenv.pypa.io/en/latest/
+- Install Git LFS : https://git-lfs.github.com
+Git LFS is necessary to download the images contained in the dataset facemotion
+
 # To Do
 
 - Add metrics for the real or fake images ✅
