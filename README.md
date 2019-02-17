@@ -36,7 +36,7 @@ Git LFS is necessary to download the images contained in the dataset facemotion
     ```
     source <venv-name>/bin/activate
     ```
-    - with virtualenvwrapper
+  - with virtualenvwrapper
     ```
     workon <venv-name>
     ```
@@ -47,9 +47,9 @@ Git LFS is necessary to download the images contained in the dataset facemotion
     pip install -R gpu-requirements.txt
     ```
   - if you use a CPU
-  ```
-  pip install -R requirements.txt
-  ```
+    ```
+    pip install -R requirements.txt
+    ```
 
 
 
