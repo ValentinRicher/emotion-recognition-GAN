@@ -107,10 +107,25 @@ class EvalManager(object):
         fn = float(len([elem for elem in real_fake_real if elem == 1]))/len(real_fake_real)
         tn = float(len([elem for elem in real_fake_fake if elem == 1]))/len(real_fake_fake)
         fp = float(len([elem for elem in real_fake_fake if elem == 0]))/len(real_fake_fake)
-        rf_precision = tp / (tp+fp)
-        rf_recall = tp / (tp+fn)
-        rf_acc = (tp + tn) / (tp + tn + fp + fn)
-        rf_f1 = 2*(rf_precision * rf_recall) / (rf_precision + rf_recall)
+        try:
+            rf_precision = tp / (tp+fp)
+        except ZeroDivisionError:
+            rf_precision = -1
+        try:
+            rf_recall = tp / (tp+fn)
+        except ZeroDivisionError:
+            rf_recall = -1
+        try:
+            rf_acc = (tp + tn) / (tp + tn + fp + fn)
+        except ZeroDivisionError:
+            rf_acc = -1
+        if rf_precision == -1 or rf_recall == -1:
+            rf_f1 = -1
+        else:
+            if rf_precision == 0 and rf_recall == 0:
+                rf_f1 = 0
+            else:
+                rf_f1 = 2*(rf_precision * rf_recall) / (rf_precision + rf_recall)
 
         with open(write_result, "w") as tr:
             tr.write('of the real images, the percentages classified as real is '+str(tp)+'\n')
@@ -342,9 +357,9 @@ def main():
         for mdl in sorted(glob.glob(config.train_dir + '/model*.meta')):
             mdl = mdl.split('/')[-1].split('.')[0]
             config.checkpoint_path = config.train_dir + mdl
-            print(config.checkpoint_path)
-            evaler = Evaler(config, dataset_test)
-            evaler.eval_run(config)
+            if (not os.path.isdir(config.checkpoint_path)):
+                evaler = Evaler(config, dataset_test)
+                evaler.eval_run(config)
     else:
         evaler = Evaler(config, dataset_test)
         evaler.eval_run(config)
