@@ -98,6 +98,7 @@ Images created by the Generator during testing :
 ![test fake images](/images/grid_test_fake_0.png)
 
 > We can notice that until epoch 400 000, the Generator can create pretty good faces before collapsing
+
 Real images used for training the Discriminator :
 ![train real images](/images/grid_train_real.png)
 
