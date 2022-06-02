@@ -24,7 +24,7 @@ gitdb2==2.0.5
 GitPython==2.1.11
 grpcio==1.14.0
 h5py==2.8.0
-html5lib==0.9999999
+html5lib==0.99999999
 idna==2.8
 ipaddress==1.0.22
 ipykernel==4.10.0
